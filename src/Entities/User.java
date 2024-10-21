@@ -3,10 +3,9 @@ package Entities;
 import java.util.UUID;
 
 public class User extends AuditableEntity{
-
     private UUID id;
     private String roleId;
-    private String fullName;
+    private String name;
     private String phone;
     private String password;
     private Utilities.Genders gender;
@@ -18,51 +17,51 @@ public class User extends AuditableEntity{
 
     // <editor-fold desc="Getters and Setters">
 
-    public UUID getId() {
+    public UUID GetId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void SetId(UUID id) {
         this.id = id;
     }
 
-    public String getRoleId() {
+    public String GetRoleId() {
         return roleId;
     }
 
-    public void setRoleId(String roleId) {
+    public void SetRoleId(String roleId) {
         this.roleId = roleId;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String GetName() {
+        return name;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void SetName(String fullName) {
+        this.name = fullName;
     }
 
-    public String getPhone() {
+    public String GetPhone() {
         return phone;
     }
 
-    public void setPhone(String phone) {
+    public void SetPhone(String phone) {
         this.phone = phone;
     }
 
-    public String getPassword() {
+    public String GetPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void SetPassword(String password) {
         this.password = password;
     }
 
-    public Utilities.Genders getGender() {
+    public Utilities.Genders GetGender() {
         return gender;
     }
 
-    public void setGender(Utilities.Genders gender) {
+    public void SetGender(Utilities.Genders gender) {
         this.gender = gender;
     }
 

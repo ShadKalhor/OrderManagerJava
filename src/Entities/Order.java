@@ -1,5 +1,6 @@
 package Entities;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ public class Order extends AuditableEntity{
     private String notes;
 
     public Order() {
+
     }
 
     // <editor-fold desc="Getters and Setters">

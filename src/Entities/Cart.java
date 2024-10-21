@@ -1,5 +1,6 @@
 package Entities;
 
+import java.net.Authenticator;
 import java.util.UUID;
 
 public class Cart extends AuditableEntity {

@@ -3,9 +3,10 @@ package Entities;
 import java.util.UUID;
 
 public class UserAddress extends AuditableEntity{
-
+    //Note => Why there is a field called name?
     private UUID id;
     private String userId;
+    private String name;
     private String city;
     private String description;
     private String type;
@@ -32,6 +33,16 @@ public class UserAddress extends AuditableEntity{
     public void setUserId(String userId) {
         this.userId = userId;
     }
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
 
     public String getCity() {
         return city;

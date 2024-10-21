@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class OrderItem extends AuditableEntity{
-
+    //Removed Item Price Since It is stated in the items entity and there is a relation between them.
     private UUID id;
-    private List<Item> Items;
+    private String orderId;
     private String itemId;
     private int quantity;
     private double totalPrice;
@@ -23,16 +23,13 @@ public class OrderItem extends AuditableEntity{
     public void setId(UUID id) {
         this.id = id;
     }
-    private List<Item> items;
 
-    // Getter for Items
-    public List<Item> getItems() {
-        return items;
+    public String getOrderId() {
+        return orderId;
     }
 
-    // Setter for Items
-    public void setItems(List<Item> items) {
-        this.items = items;
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 
 

@@ -3,16 +3,15 @@ package Entities;
 import java.util.UUID;
 
 public class Item extends AuditableEntity{
-
+    // Note => Don't need an image field since there is an entity for it. Same with Rating
     private UUID id;
     private String name;
-    private String imagePath;
     private String description;
     private double price;
     private String size;
     private double discount;
     private boolean isAvailable;
-    private int quantity;
+    private int quantity; //Quantity is a better name for it instead of stock
 
     public Item() {
     }
@@ -35,13 +34,6 @@ public class Item extends AuditableEntity{
         this.name = name;
     }
 
-    public String getImagePath() {
-        return imagePath;
-    }
-
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
-    }
 
     public String getDescription() {
         return description;
