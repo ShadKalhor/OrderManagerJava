@@ -8,80 +8,65 @@ import java.util.UUID;
 public class ItemController {
     private final List<Item> itemList = new ArrayList<>();
 
-    public void createItem(String name, String description, double price, String size, double discount, boolean isAvailable, int quantity) {
-        if (name == null || name.isEmpty()) {
-            System.out.println("Invalid name.");
-            return;
+    public void CreateItem(Item item) {
+        if(isValidItem(item)) {
+            Item newItem = new Item(UUID.randomUUID(), item.name(), item.description(), item.price(), item.size(), item.discount(),
+                    item.isAvailable(), item.quantity());
+            itemList.add(newItem);
+            System.out.println("Item created successfully!");
         }
-        if (description == null || description.isEmpty()) {
-            System.out.println("Invalid description.");
-            return;
-        }
-        if (price < 0) {
-            System.out.println("Price cannot be negative.");
-            return;
-        }
-        if (size == null || size.isEmpty()) {
-            System.out.println("Invalid size.");
-            return;
-        }
-        if (discount < 0 || discount > 1) {
-            System.out.println("Discount must be between 0 and 1.");
-            return;
-        }
-        if (quantity < 0) {
-            System.out.println("Quantity cannot be negative.");
-            return;
-        }
-
-        Item newItem = new Item(UUID.randomUUID(), name, description, price, size, discount, isAvailable, quantity);
-        itemList.add(newItem);
-        System.out.println("Item created successfully!");
     }
 
-    public Item readItem(UUID itemId) {
+    private boolean isValidItem(Item item) {
+        if (item.name() == null || item.name().isEmpty()) {
+            System.out.println("Invalid name.");
+            return false;
+        }
+        if (item.description() == null || item.description().isEmpty()) {
+            System.out.println("Invalid description.");
+            return false;
+        }
+        if (item.price() < 0) {
+            System.out.println("Price cannot be negative.");
+            return false;
+        }
+        if (item.size() == null || item.size().isEmpty()) {
+            System.out.println("Invalid size.");
+            return false;
+        }
+        if (item.discount() < 0 || item.discount() > 1) {
+            System.out.println("Discount must be between 0 and 1.");
+            return false;
+        }
+        if (item.quantity() < 0) {
+            System.out.println("Quantity cannot be negative.");
+            return false;
+        }
+        return true;
+    }
+
+    public Item ReadItem(UUID itemId) {
         return itemList.stream().filter(item -> item.id().equals(itemId)).findFirst().orElse(null);
     }
 
-    public void updateItem(UUID itemId, String name, String description, double price, String size, double discount, boolean isAvailable, int quantity) {
-        if (name == null || name.isEmpty()) {
-            System.out.println("Invalid name.");
-            return;
-        }
-        if (description == null || description.isEmpty()) {
-            System.out.println("Invalid description.");
-            return;
-        }
-        if (price < 0) {
-            System.out.println("Price cannot be negative.");
-            return;
-        }
-        if (size == null || size.isEmpty()) {
-            System.out.println("Invalid size.");
-            return;
-        }
-        if (discount < 0 || discount > 1) {
-            System.out.println("Discount must be between 0 and 1.");
-            return;
-        }
-        if (quantity < 0) {
-            System.out.println("Quantity cannot be negative.");
-            return;
-        }
+    public void UpdateItem(UUID itemId,Item item) {
 
-        for (int i = 0; i < itemList.size(); i++) {
-            Item item = itemList.get(i);
-            if (item.id().equals(itemId)) {
-                Item updatedItem = new Item(itemId, name, description, price, size, discount, isAvailable, quantity);
-                itemList.set(i, updatedItem);
-                System.out.println("Item updated successfully!");
-                return;
+        if(isValidItem(item)) {
+            for (int i = 0; i < itemList.size(); i++) {
+                Item currentItem = itemList.get(i);
+                if (item.id().equals(itemId)) {
+                    Item updatedItem = new Item(UUID.randomUUID(), item.name(), item.description(), item.price(), item.size(), item.discount(),
+                            item.isAvailable(), item.quantity());
+                    itemList.set(i, updatedItem);
+                    System.out.println("Item updated successfully!");
+                    return;
+                }
             }
+            System.out.println("Item not found.");
         }
-        System.out.println("Item not found.");
     }
 
-    public void deleteItem(UUID itemId) {
+    public void DeleteItem(UUID itemId) {
         boolean removed = itemList.removeIf(item -> item.id().equals(itemId));
         if (removed) {
             System.out.println("Item deleted successfully!");
@@ -90,13 +75,13 @@ public class ItemController {
         }
     }
 
-    public List<Item> listItems() {
+    public List<Item> ListItems() {
         if (itemList.isEmpty()) {
             System.out.println("No items available.");
         }
         return new ArrayList<>(itemList);
     }
-    public void setItemList(List<Item> itemList) {
+    public void SetItemList(List<Item> itemList) {
         this.itemList.clear();
         this.itemList.addAll(itemList);
     }

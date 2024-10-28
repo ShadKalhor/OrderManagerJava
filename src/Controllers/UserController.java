@@ -2,6 +2,7 @@ package Controllers;
 
 import Entities.User;
 import Entities.Utilities;
+import Extensions.RegexFormats;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,67 +11,41 @@ import java.util.UUID;
 public class UserController {
     private final List<User> userList = new ArrayList<>();
 
-    public void createUser(String roleId, String name, String phone, String password, Utilities.Genders gender) {
-        if (roleId == null || roleId.isEmpty()) {
-            System.out.println("Invalid role ID.");
-            return;
+    public void CreateUser(User user) {
+        if(isValidUser(user)) {
+            User newUser = new User(UUID.randomUUID(), user.roleId(), user.name(), user.phone(), user.password(), user.gender());
+            userList.add(newUser);
+            System.out.println("User created successfully!");
         }
-        if (name == null || name.isEmpty()) {
-            System.out.println("Invalid name.");
-            return;
-        }
-        if (phone == null || phone.isEmpty()) {
-            System.out.println("Invalid phone number.");
-            return;
-        }
-        if (password == null || password.isEmpty()) {
-            System.out.println("Invalid password.");
-            return;
-        }
-
-        User newUser = new User(UUID.randomUUID(), roleId, name, phone, password, gender);
-        userList.add(newUser);
-        System.out.println("User created successfully!");
     }
 
-    public User readUser(UUID userId) {
+    public User GetUser(UUID userId) {
         return userList.stream()
                 .filter(user -> user.id().equals(userId))
                 .findFirst()
                 .orElse(null);
     }
 
-    public void updateUser(UUID userId, String roleId, String name, String phone, String password, Utilities.Genders gender) {
-        if (roleId == null || roleId.isEmpty()) {
-            System.out.println("Invalid role ID.");
-            return;
-        }
-        if (name == null || name.isEmpty()) {
-            System.out.println("Invalid name.");
-            return;
-        }
-        if (phone == null || phone.isEmpty()) {
-            System.out.println("Invalid phone number.");
-            return;
-        }
-        if (password == null || password.isEmpty()) {
-            System.out.println("Invalid password.");
-            return;
-        }
+    public void UpdateUser(UUID userId, User newUser) {
 
-        for (int i = 0; i < userList.size(); i++) {
-            User user = userList.get(i);
-            if (user.id().equals(userId)) {
-                User updatedUser = new User(userId, roleId, name, phone, password, gender);
-                userList.set(i, updatedUser);
-                System.out.println("User updated successfully!");
-                return;
+
+        if (isValidUser(newUser)){
+            for (int i = 0; i < userList.size(); i++) {
+                User user = userList.get(i);
+                if (user.id().equals(userId)) {
+                    User updatedUser = new User(userId, newUser.roleId(), newUser.name(),
+                            newUser.phone(), newUser.password(), newUser.gender());
+                    userList.set(i, updatedUser);
+
+                    System.out.println("User updated successfully!");
+                    return;
+                }
             }
+            System.out.println("User not found.");
         }
-        System.out.println("User not found.");
     }
 
-    public void deleteUser(UUID userId) {
+    public void DeleteUser(UUID userId) {
         boolean removed = userList.removeIf(user -> user.id().equals(userId));
         if (removed) {
             System.out.println("User deleted successfully!");
@@ -90,6 +65,33 @@ public class UserController {
     public void setUserList(List<User> userList) {
         this.userList.clear();
         this.userList.addAll(userList);
+    }
+
+
+    private boolean isValidUser(User user) {
+        RegexFormats formats = new RegexFormats();
+
+        if (user.roleId() == null || user.roleId().isEmpty()) {
+            System.out.println("Invalid role ID.");
+            return false;
+        }
+
+        //Validating Name
+        if (user.name() == null || user.name().isEmpty() || !(user.name().matches(formats.NameRegex))) {
+            System.out.println("Invalid name.");
+            return false;
+        }
+
+        if (user.phone() == null || user.phone().isEmpty() || !(user.phone().matches(formats.PhoneRegex))) {
+            System.out.println("Invalid phone number.");
+            return false;
+        }
+        if (user.password() == null || user.password().isEmpty() || !(user.password().matches(formats.PasswordRegex))) {
+            System.out.println("Invalid password.");
+            return false;
+        }
+
+        return true;
     }
 
 }
