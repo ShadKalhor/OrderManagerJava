@@ -1,6 +1,8 @@
 package Controllers;
 
 import Entities.*;
+import Repo.DataPersistence;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -8,7 +10,7 @@ import java.util.UUID;
 public class OrderController {
     private final List<Order> orderList = new ArrayList<>();
 
-    public void CreateOrder(Order order) {
+    public void createOrder(Order order) {
 
         if(isValidOrder(order)) {
             double totalPrice = order.subTotal() + order.deliveryFee() + order.tax();
@@ -16,6 +18,8 @@ public class OrderController {
                     order.driverId(), order.status(), order.deliveryStatus(), order.items(),
                     order.subTotal(), order.deliveryFee(), order.tax(), totalPrice, order.notes());
             orderList.add(newOrder);
+            DataPersistence.saveData(orderList, "orders.json");  // Save the user list to JSON
+
             System.out.println("Order created successfully!");
         }
     }

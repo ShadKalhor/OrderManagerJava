@@ -1,5 +1,8 @@
+package Repo;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 
 import java.io.*;
 import java.util.ArrayList;
@@ -18,6 +21,14 @@ public class DataPersistence {
         }
     }
 
+    public static <T> void saveSingleData(T data, String filename) {
+        try (FileWriter writer = new FileWriter(filename)) {
+            gson.toJson(data, writer);
+            System.out.println("Data saved to " + filename);
+        } catch (IOException e) {
+            System.out.println("Error saving data: " + e.getMessage());
+        }
+    }
     // Load data from a JSON file
     public static <T> List<T> loadData(String filename, TypeToken<List<T>> typeToken) {
         try (FileReader reader = new FileReader(filename)) {

@@ -1,23 +1,28 @@
 import Controllers.UserController;
 import Entities.*;
-import Controllers.*;
+import Repo.DataPersistence;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
-import Controllers.*;
+import  Controllers.CartController;
+import  Controllers.ItemController;
+import  Controllers.OrderController;
+
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     // Initialize some sample items for ordering
-
+    private static final String USER_FILE = "users.json";
+    private static final TypeToken<List<User>> USER_TYPE = new TypeToken<>() {};
     private static final UserController userController = new UserController();
     private static final ItemController itemController = new ItemController();
     private static final CartController cartController = new CartController();
     private static final OrderController orderController = new OrderController();
     private final List<User> userList = new ArrayList<>();
-    private static User loggedInUser;
+    private static User loggedInUser ;
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -32,7 +37,7 @@ public class Main {
                 System.out.println("1. View Available Items");
                 System.out.println("2. Add Item to Cart");
                 System.out.println("3. View Cart");
-                System.out.println("4. Place Order");
+                System.out.println("4. Place Order");x
                 System.out.println("5. Exit");
                 System.out.print("Choose an option: ");
                 int choice = scanner.nextInt();
@@ -53,30 +58,104 @@ public class Main {
                 }
             }
         }
+
     }
 
     // Initialize some sample items for ordering
     // Initialize some sample items for ordering
     private static void initializeItems() {
-        itemController.createItem("Laptop", "A high-performance laptop", 1200.00, "15 inch", 0.10, true, 10);
-        itemController.createItem("Phone", "A smartphone with 5G connectivity", 800.00, "6 inch", 0.05, true, 20);
-        itemController.createItem("Headphones", "Noise-cancelling wireless headphones", 200.00, "One size", 0.00, true, 15);
-        itemController.createItem("Monitor", "27-inch 4K UHD monitor", 500.00, "27 inch", 0.15, true, 7);
-        itemController.createItem("Keyboard", "Mechanical RGB keyboard", 100.00, "One size", 0.20, true, 12);
-        itemController.createItem("Mouse", "Wireless ergonomic mouse", 50.00, "One size", 0.00, true, 30);
+        // Load items from JSON
+
+        List<Item> items = DataPersistence.loadData("items.json", new TypeToken<List<Item>>() {});
+
+        // Check if items is null or empty before proceeding
+        if (items == null || items.isEmpty()) {
+            // Populate default items if the file is empty or not found
+            itemController.createItem(new Item(UUID.randomUUID(), "Laptop", "A high-performance laptop", 1200.00, "15 inch", 0.10, true, 10));
+            itemController.createItem(new Item(UUID.randomUUID(), "Phone", "A smartphone with 5G connectivity", 800.00, "6 inch", 0.05, true, 20));
+
+            // Save initialized items
+            DataPersistence.saveData(itemController.listItems(), "items.json");
+        } else {
+            // Load existing items from the JSON file
+            items.forEach(itemController::createItem); // Add loaded items to the controller
+
+            // Print the loaded items for confirmation
+            System.out.println("Loaded items from items.json:");
+            items.forEach(item -> System.out.println(item));
+        }
     }
 
 
-    private static void loginUser() {
-        System.out.println("\n=== User Login ===");
-        System.out.print("Enter your name: ");
-        String name = scanner.nextLine();
-        System.out.print("Enter your phone number: ");
-        String phone = scanner.nextLine();
 
-        // Create a default user for simplicity
-        loggedInUser = new User(UUID.randomUUID(), "userRoleId", name, phone, "password", Utilities.Genders.Male);
-        System.out.println("Logged in as " + loggedInUser.name());
+
+    private static void loginUser() {
+
+        System.out.println("\n=== User Login / Sign Up ===");
+        System.out.println("Choose an option:");
+        System.out.println("1. Log In");
+        System.out.println("2. Sign Up");
+        System.out.print("Enter your choice (1 or 2): ");
+        int choice = scanner.nextInt();
+        scanner.nextLine();  // Consume the newline character
+
+
+
+        if(choice==1){
+            System.out.println("\n=== User Login ===");
+            System.out.print("Enter your name: ");
+            String name = scanner.nextLine();
+            System.out.print("Enter your phone number: ");
+            String phone = scanner.nextLine();
+
+            System.out.print("Enter your password: ");
+            String password = scanner.nextLine();
+            loggedInUser= new User(UUID.randomUUID(),"userRoleId",name, phone,password, Utilities.Genders.Male);
+            // Check if the entered credentials match any existing user
+            boolean userFound = false;
+//            for (User user : users) {
+//                // Check if the name and phone match
+//                if (user.name().equals(name) && user.phone().equals(phone)) {
+//                    // Check if the password matches
+//                    if (user.password().equals(password)) {
+//                        loggedInUser = user; // Set the logged-in user
+//                        userFound = true;
+//                        System.out.println("Logged in as " + loggedInUser.name());
+//                        break; // Exit the loop if the user is found
+//                    } else {
+//                        System.out.println("Invalid password.");
+//                        return; // Exit if the password is invalid
+//                    }
+//                }
+//            }
+
+            // Notify if no user is found
+            if (!userFound) {
+                System.out.println("Invalid name or phone number.");
+            }
+            // Create a default user for simplicity
+            System.out.println("Logged in as " + loggedInUser.getName());
+        }else if (choice == 2) {
+            System.out.print("Enter your name: ");
+            String name = scanner.nextLine();
+            System.out.print("Enter your phone number: ");
+            String phone = scanner.nextLine();
+            System.out.print("Enter your password: ");
+            String password = scanner.nextLine();
+
+            User newUser = new User(UUID.randomUUID(), "userRoleId", name, phone, password, Utilities.Genders.Male); // Assuming a default gender
+
+            // Validate and add the new user
+            List<String> validationErrors = userController.validateUser(newUser);
+            if (validationErrors.isEmpty()) {
+                // Save the new user
+                userController.createUser(newUser);  // Optionally create user in the UserController
+                loggedInUser = newUser;  // Set logged in user
+                System.out.println("User signed up successfully!");
+            } else {
+                validationErrors.forEach(System.out::println);
+            }
+        }
     }
 
     private static void listAvailableItems() {
@@ -85,6 +164,7 @@ public class Main {
         if (items.isEmpty()) {
             System.out.println("No items available.");
         } else {
+
             items.forEach(item -> System.out.println(item));
         }
     }
@@ -92,20 +172,30 @@ public class Main {
     private static void addItemToCart() {
         System.out.println("\n=== Add Item to Cart ===");
         System.out.print("Enter item ID: ");
-        UUID itemId = UUID.fromString(scanner.nextLine());
+        String itemIdInput = scanner.nextLine();
+
+        UUID itemId;
+        try {
+            itemId = UUID.fromString(itemIdInput);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid UUID format. Please enter a valid UUID.");
+            return; // Exit the method if UUID is invalid
+        }
+
         System.out.print("Enter quantity: ");
         int quantity = scanner.nextInt();
         scanner.nextLine();  // Consume newline
 
         Item item = itemController.readItem(itemId);
         if (item != null && item.isAvailable()) {
-            double subTotal = item.price() * quantity;
+            double subTotal = item.getPrice() * quantity;
             cartController.createCart(quantity, itemId.toString(), subTotal);
             System.out.println("Item added to cart.");
         } else {
             System.out.println("Item not found or unavailable.");
         }
     }
+
 
     private static void viewCart() {
         System.out.println("\n=== Cart ===");
@@ -130,7 +220,7 @@ public class Main {
                 totalPrice += cart.subTotal();
                 orderItems.add(new OrderItem(UUID.randomUUID(), UUID.randomUUID().toString(), cart.itemId(), cart.quantity(), cart.subTotal()));
             }
-            orderController.createOrder(loggedInUser.id().toString(), "addressId", "driverId", Utilities.Status.Pending, Utilities.DeliveryStatus.Pending, orderItems, totalPrice, 10, 0, "No notes");
+            orderController.createOrder(new Order(( UUID.randomUUID()),loggedInUser.getId().toString(), "addressId", "driverId", Utilities.Status.Pending, Utilities.DeliveryStatus.Pending, orderItems, totalPrice, 10, 0, 120,"No notes"));
             System.out.println("Order placed successfully. Total price: $" + totalPrice);
             cartController.clearCart(); // Clear the cart after placing the order
         }
