@@ -37,7 +37,7 @@ public class Main {
                 System.out.println("1. View Available Items");
                 System.out.println("2. Add Item to Cart");
                 System.out.println("3. View Cart");
-                System.out.println("4. Place Order");x
+                System.out.println("4. Place Order");
                 System.out.println("5. Exit");
                 System.out.print("Choose an option: ");
                 int choice = scanner.nextInt();
@@ -101,19 +101,51 @@ public class Main {
 
 
 
-        if(choice==1){
-            System.out.println("\n=== User Login ===");
+        if(choice==1){  System.out.println("\n=== User Login ===");
+
             System.out.print("Enter your name: ");
             String name = scanner.nextLine();
+            if (name == null || name.trim().isEmpty()) {
+                System.out.println("Invalid name. Please try again.");
+                return;
+            }
+
             System.out.print("Enter your phone number: ");
             String phone = scanner.nextLine();
+            if (!phone.matches("^07\\d{9}$")) { // Validates phone starts with "07" and has 11 digits
+                System.out.println("Invalid phone number. Please try again.");
+                return;
+            }
 
             System.out.print("Enter your password: ");
             String password = scanner.nextLine();
-            loggedInUser= new User(UUID.randomUUID(),"userRoleId",name, phone,password, Utilities.Genders.Male);
+            if (password.length() < 8 || !password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$")) {
+                System.out.println("Invalid password. Password must be at least 8 characters, contain an uppercase letter, a lowercase letter, a digit, and a special character.");
+                return;
+            }
+
             // Check if the entered credentials match any existing user
             boolean userFound = false;
-//            for (User user : users) {
+            User loggedInUser = null;
+            for (User user : userController.listUsers()) {
+                if (user.getName().equals(name) && user.getPhone().equals(phone)) {
+                    if (user.getPassword().equals(password)) {
+                        loggedInUser = user;
+                        userFound = true;
+                        System.out.println("Logged in as " + loggedInUser.getName());
+                        break;
+                    } else {
+                        System.out.println("Invalid password.");
+                        return;
+                    }
+                }
+            }
+
+            // Notify if no user is found
+            if (!userFound) {
+                System.out.println("Invalid name or phone number.");
+            }
+
 //                // Check if the name and phone match
 //                if (user.name().equals(name) && user.phone().equals(phone)) {
 //                    // Check if the password matches
@@ -130,12 +162,7 @@ public class Main {
 //            }
 
             // Notify if no user is found
-            if (!userFound) {
-                System.out.println("Invalid name or phone number.");
-            }
-            // Create a default user for simplicity
-            System.out.println("Logged in as " + loggedInUser.getName());
-        }else if (choice == 2) {
+                }else if (choice == 2) {
             System.out.print("Enter your name: ");
             String name = scanner.nextLine();
             System.out.print("Enter your phone number: ");
@@ -161,11 +188,11 @@ public class Main {
     private static void listAvailableItems() {
         System.out.println("\n=== Available Items ===");
         List<Item> items = itemController.listItems();
-        if (items.isEmpty()) {
+        if (items.isEmpty() ) {
             System.out.println("No items available.");
         } else {
 
-            items.forEach(item -> System.out.println(item));
+            items.forEach(item -> System.out.println(item ));
         }
     }
 

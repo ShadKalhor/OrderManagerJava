@@ -1,12 +1,19 @@
 package Controllers;
 
 import Entities.Item;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 public class ItemController {
-    private final List<Item> itemList = new ArrayList<>();
+    private List<Item> itemList = new ArrayList<>();
 
     public void createItem(Item item) {
         if (isValidItem(item)) {
@@ -77,10 +84,30 @@ public class ItemController {
     }
 
     public List<Item> listItems() {
-        if (itemList.isEmpty()) {
+        LoadItems();
+
+        if (itemList == null || itemList.isEmpty()) {
             System.out.println("No items available.");
         }
         return new ArrayList<>(itemList);
+    }
+
+    private void LoadItems() {
+        Gson gson = new Gson();
+        try (FileReader reader = new FileReader("items.json")) {
+            // Define the collection type
+            Type itemListType = new TypeToken<List<Item>>() {}.getType();
+
+            // Deserialize JSON file to list of Item objects
+            itemList = gson.fromJson(reader, itemListType);
+
+            // Print each item using the overridden toString() method
+            for (Item item : itemList) {
+                System.out.println(item);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setItemList(List<Item> itemList) {

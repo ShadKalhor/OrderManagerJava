@@ -1,5 +1,6 @@
 package Entities;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 public class Item {
@@ -11,7 +12,6 @@ public class Item {
     private double discount;
     private boolean isAvailable;
     private int quantity;
-    private String [] ItemImage;
 
     // Constructor
     public Item(UUID id, String name, String description, double price, String size, double discount, boolean isAvailable, int quantity) {
@@ -84,5 +84,19 @@ public class Item {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+    // Override toString() for meaningful output
+    @Override
+    public String toString() {
+        return
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", price=" + price +
+                ", size='" + size + '\'' +
+                ", discount=" + discount +
+                ", isAvailable=" + isAvailable +
+                ", quantity=" + quantity
+               ;
     }
 }
