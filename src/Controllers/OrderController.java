@@ -2,27 +2,165 @@ package Controllers;
 
 import Entities.*;
 import Repo.DataPersistence;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class OrderController {
-    private final List<Order> orderList = new ArrayList<>();
+    private List<Order> orderList = new ArrayList<>();
 
-    public void createOrder(Order order) {
+    public void AddItemToPendingOrder(OrderItem orderItem, User loggedInUser){
+        loadOrders();
+            Order selectedOrder = orderList.stream()
+                    .filter(e -> e.getStatus().equals(Utilities.Status.Pending)
+                            && (e.getUserId().equals(loggedInUser.getId())))
+                    .findFirst().orElse(null);
+            if (selectedOrder == null) {
+                selectedOrder = new Order();
+                selectedOrder.setUserId(loggedInUser.getId());
+                selectedOrder.addItem(orderItem);
+                CreateOrder(selectedOrder);
+            } else {
+                selectedOrder.addItem(orderItem);
+                UpdateOrder(selectedOrder);
+            }
+    }
+    private Order getOrderByUser(User loggedInUser){
+        loadOrders();
+        return orderList.stream().filter(e -> e.getUserId().equals(loggedInUser.getId()) && e.getStatus().equals(Utilities.Status.Pending)).findFirst().orElse(null);
+    }
+    public void PrintCart(User loggedInUser){
+        Order order = getOrderByUser(loggedInUser);
+        if (order != null){
+            List<OrderItem> items = order.getItems();
+            if (items == null || items.isEmpty()) {
+                System.out.println("Your cart is empty.");
+                return;
+            }
 
-        if(isValidOrder(order)) {
-            double totalPrice = order.subTotal() + order.deliveryFee() + order.tax();
+            System.out.println("Items in your cart:");
+            for (OrderItem item : items) {
+                System.out.println("Item ID: " + item.getItemId());
+                System.out.println("Quantity: " + item.getQuantity());
+                System.out.println("Total Price: $" + item.getTotalPrice());
+                System.out.println("---------------------------");
+            }
+        }
+
+    }
+
+    public void UpdateOrder(Order selectedOrder) {
+        loadOrders();
+        orderList.stream()
+                .filter(e -> e.getId().equals(selectedOrder.getId()))
+                .findFirst()
+                .ifPresent(order -> {
+                    order.setUserId(selectedOrder.getUserId());
+                    order.setAddressId(selectedOrder.getAddressId());
+                    order.setDriverId(selectedOrder.getDriverId());
+                    order.setStatus(selectedOrder.getStatus());
+                    order.setDeliveryStatus(selectedOrder.getDeliveryStatus());
+                    order.setItems(selectedOrder.getItems());
+                    order.setSubTotal(selectedOrder.getSubTotal());
+                    order.setDeliveryFee(selectedOrder.getDeliveryFee());
+                    order.setTax(selectedOrder.getTax());
+                    order.setTotalPrice(selectedOrder.getTotalPrice());
+                    order.setNotes(selectedOrder.getNotes());
+                });;
+                saveOrderToJson(orderList);
+
+    }
+
+    private void loadOrders() {
+        Gson gson = new Gson();
+        try (FileReader reader = new FileReader("orders.json")) {
+            // Define the collection type
+            Type orderListType = new TypeToken<List<Order>>() {}.getType();
+
+            // Deserialize JSON file to list of Item objects
+            orderList = gson.fromJson(reader, orderListType);
+            if(orderList == null)
+                orderList = new ArrayList<>();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void CreateOrder(Order order) {
+        saveOrderToJson(order);
+        //if(isValidOrder(order)) {
+            /*double totalPrice = order.subTotal() + order.deliveryFee() + order.tax();
             Order newOrder = new Order(UUID.randomUUID(), order.userId(), order.addressId(),
                     order.driverId(), order.status(), order.deliveryStatus(), order.items(),
                     order.subTotal(), order.deliveryFee(), order.tax(), totalPrice, order.notes());
             orderList.add(newOrder);
             DataPersistence.saveData(orderList, "orders.json");  // Save the user list to JSON
 
-            System.out.println("Order created successfully!");
-        }
+            System.out.println("Order created successfully!");*/
+        //}
     }
+
+    private boolean saveOrderToJson(Order order) {
+        Gson gson = new Gson();
+        List<Order> orders = new ArrayList<>();
+
+        loadOrders();
+        orders = orderList;
+        orders.add(order);
+
+        try (FileWriter fileWriter = new FileWriter("orders.json")) {
+            gson.toJson(orders, fileWriter);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+
+    }
+
+    private boolean saveOrderToJson(List<Order> newOrders) {
+        Gson gson = new Gson();
+        List<Order> orders = null;
+
+        loadOrders();
+        orders = newOrders;
+
+        try (FileWriter fileWriter = new FileWriter("orders.json")) {
+            gson.toJson(orders, fileWriter);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+
+    }
+
+    public void PlacePendingOrder(User loggedInUser) {
+        loadOrders();
+        Order selectedOrder = orderList.stream()
+                .filter(e -> e.getStatus().equals(Utilities.Status.Pending)
+                        && (e.getUserId().equals(loggedInUser.getId())))
+                .findFirst().orElse(null);
+        if(selectedOrder == null){
+            System.out.println("Cant place the order,The Cart is Empty");
+            return;
+        }else {
+            selectedOrder.setStatus(Utilities.Status.Confirmed);
+            UpdateOrder(selectedOrder);
+        }
+
+    }
+/*
 
     private boolean isValidOrder(Order order) {
 
@@ -56,6 +194,8 @@ public class OrderController {
         }
         return true;
     }
+*/
+/*
 
     public Order ReadOrder(UUID orderId) {
         return orderList.stream()
@@ -103,5 +243,7 @@ public class OrderController {
         this.orderList.clear();
         this.orderList.addAll(orderList);
     }
+
+*/
 
 }

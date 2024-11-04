@@ -1,8 +1,11 @@
 package Entities;
 
 import java.util.UUID;
+import Entities.*;
+
 
 public class User {
+
     private final UUID id;
     private String roleId;
     private String name;
@@ -10,71 +13,79 @@ public class User {
     private String password;
     private Utilities.Genders gender;
 
-    // Constructor
-    public User(UUID id, String roleId, String name, String phone, String password, Utilities.Genders gender) {
+        // Constructor
+    public User(UUID id, String roleId, String name, String phone, String password, Utilities.Genders newgender) {
         this.id = id;
         this.roleId = roleId;
         this.name = name;
         this.phone = phone;
         this.password = password;
-        this.gender = gender;
+        gender = newgender;
     }
 
-    // Getters
-    public UUID getId() {
-        return id;
+
+        // Constructor
+    public User() {
+        this.id = UUID.randomUUID();
     }
 
-    public String getRoleId() {
-        return roleId;
-    }
+        // Getters
+        public UUID getId() {
+            return id;
+        }
 
-    public String getName() {
-        return name;
-    }
+        public String getRoleId() {
+            return roleId;
+        }
 
-    public String getPhone() {
-        return phone;
-    }
+        public String getName() {
+            return name;
+        }
 
-    public String getPassword() {
-        return password;
-    }
+        public String getPhone() {
+            return phone;
+        }
 
-    public Utilities.Genders getGender() {
-        return gender;
-    }
+        public String getPassword() {
+            return password;
+        }
 
-    // Setters
-    public void setRoleId(String roleId) {
-        this.roleId = roleId;
-    }
+        public Utilities.Genders getGender() {
+            return gender;
+        }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+        // Setters
+        public void setRoleId(String roleId) {
+            this.roleId = roleId;
+        }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+        public void setName(String name) {
+            this.name = name;
+        }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
 
-    public void setGender(Utilities.Genders gender) {
-        this.gender = gender;
-    }
+        public void setPassword(String password) {
+            this.password = password;
+        }
 
-    // Optional toString method for better output
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", roleId='" + roleId + '\'' +
-                ", name='" + name + '\'' +
-                ", phone='" + phone + '\'' +
-                ", gender=" + gender +
-                '}';
-    }
+        public void setGender(Utilities.Genders newgender) {
+            gender = newgender;
+        }
+
+        // Optional toString method for better output
+        @Override
+        public String toString() {
+            return "User{" +
+                    "id=" + id +
+                    ", roleId='" + roleId + '\'' +
+                    ", name='" + name + '\'' +
+                    ", phone='" + phone + '\'' +
+                    ", gender=" + gender +
+                    '}';
+        }
 }
+
+

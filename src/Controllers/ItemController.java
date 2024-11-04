@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -53,8 +54,12 @@ public class ItemController {
         return true;
     }
 
-    public Item readItem(UUID itemId) {
-        return itemList.stream().filter(item -> item.getId().equals(itemId)).findFirst().orElse(null);
+    public Item getItemById(UUID itemId) {
+        loadItems();
+        return itemList.stream().
+                filter(item -> item.getId().equals(itemId))
+                .findFirst()
+                .orElse(null);
     }
 
     public void updateItem(UUID itemId, Item item) {
@@ -84,7 +89,7 @@ public class ItemController {
     }
 
     public List<Item> listItems() {
-        LoadItems();
+        loadItems();
 
         if (itemList == null || itemList.isEmpty()) {
             System.out.println("No items available.");
@@ -92,7 +97,7 @@ public class ItemController {
         return new ArrayList<>(itemList);
     }
 
-    private void LoadItems() {
+    private void loadItems() {
         Gson gson = new Gson();
         try (FileReader reader = new FileReader("items.json")) {
             // Define the collection type
@@ -113,5 +118,16 @@ public class ItemController {
     public void setItemList(List<Item> itemList) {
         this.itemList.clear();
         this.itemList.addAll(itemList);
+    }
+
+    public void PrintItemList(List<Item> items){
+
+    }
+
+    public List<Item> LoadItemsById(List<UUID> itemIds) {
+        loadItems();
+        return itemList.stream()
+                .filter(item -> itemIds.contains(item.getId()))
+                .collect(Collectors.toList());
     }
 }

@@ -3,253 +3,182 @@ import Entities.*;
 import Repo.DataPersistence;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
-import  Controllers.CartController;
 import  Controllers.ItemController;
 import  Controllers.OrderController;
+import java.io.IOException;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
+
+    private static final String SERVER_HOST = "localhost"; // Replace with server IP if needed
+    private static final int SERVER_PORT = 8081;
+
     // Initialize some sample items for ordering
     private static final String USER_FILE = "users.json";
     private static final TypeToken<List<User>> USER_TYPE = new TypeToken<>() {};
     private static final UserController userController = new UserController();
     private static final ItemController itemController = new ItemController();
-    private static final CartController cartController = new CartController();
     private static final OrderController orderController = new OrderController();
     private final List<User> userList = new ArrayList<>();
-    private static User loggedInUser ;
+    private static User loggedInUser;
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        initializeItems(); // Create some sample items
-        boolean running = true;
-
-        while (running) {
-            if (loggedInUser == null) {
-                loginUser(); // Log in before accessing the system
-            } else {
-                System.out.println("\n==== Main Menu ====");
-                System.out.println("1. View Available Items");
-                System.out.println("2. Add Item to Cart");
-                System.out.println("3. View Cart");
-                System.out.println("4. Place Order");
-                System.out.println("5. Exit");
-                System.out.print("Choose an option: ");
-                int choice = scanner.nextInt();
-                scanner.nextLine();  // Consume newline
-
-                if (choice == 1) {
-                    listAvailableItems();
-                } else if (choice == 2) {
-                    addItemToCart();
-                } else if (choice == 3) {
-                    viewCart();
-                } else if (choice == 4) {
-                    placeOrder();
-                } else if (choice == 5) {
-                    running = false;
-                } else {
-                    System.out.println("Invalid option. Try again.");
-                }
-            }
-        }
+        User newUser = new User();
+        loginUi();
 
     }
+    private static void loginUi(){
+        System.out.println("You Are Not Logged in");
+        System.out.println("press 1 to Login");
+        System.out.println("press 2 to signUp");
+        int option = scanner.nextInt();
+        scanner.nextLine();
+        if(option == 1) login();
+        else if(option == 2) signUp();
+    }
+    private static void login() {
+        User newUser = new User();
+        System.out.println("Enter Phone Number");
+        String phone = scanner.nextLine();
+        newUser.setPhone(phone);
+        System.out.println("Enter Password");
+        String password = scanner.nextLine();
+        newUser.setPassword(password);
 
-    // Initialize some sample items for ordering
-    // Initialize some sample items for ordering
-    private static void initializeItems() {
-        // Load items from JSON
-
-        List<Item> items = DataPersistence.loadData("items.json", new TypeToken<List<Item>>() {});
-
-        // Check if items is null or empty before proceeding
-        if (items == null || items.isEmpty()) {
-            // Populate default items if the file is empty or not found
-            itemController.createItem(new Item(UUID.randomUUID(), "Laptop", "A high-performance laptop", 1200.00, "15 inch", 0.10, true, 10));
-            itemController.createItem(new Item(UUID.randomUUID(), "Phone", "A smartphone with 5G connectivity", 800.00, "6 inch", 0.05, true, 20));
-
-            // Save initialized items
-            DataPersistence.saveData(itemController.listItems(), "items.json");
+        boolean validLogin = userController.IsValidLogin(phone, password);
+        if (validLogin) {
+            System.out.println("LoggedIn");
+            loggedInUser = userController.getUser(phone);
+            MainMenuUI();
         } else {
-            // Load existing items from the JSON file
-            items.forEach(itemController::createItem); // Add loaded items to the controller
-
-            // Print the loaded items for confirmation
-            System.out.println("Loaded items from items.json:");
-            items.forEach(item -> System.out.println(item));
+            System.out.println("Invalid Login, Press any Key To Retry");
+            scanner.nextLine();
+            login();
         }
     }
-
-
-
-
-    private static void loginUser() {
-
-        System.out.println("\n=== User Login / Sign Up ===");
-        System.out.println("Choose an option:");
-        System.out.println("1. Log In");
-        System.out.println("2. Sign Up");
-        System.out.print("Enter your choice (1 or 2): ");
+    private static void MainMenuUI() {
+        System.out.println("\n==== Main Menu ====");
+        System.out.println("1. View Available Items");
+        System.out.println("2. Add Item to Cart");
+        System.out.println("3. View Cart");
+        System.out.println("4. Place Order");
+        System.out.println("5. Exit");
+        System.out.print("Choose an option: ");
         int choice = scanner.nextInt();
-        scanner.nextLine();  // Consume the newline character
+        scanner.nextLine();  // Consume newline
 
 
+        if (choice == 1) {
+            listAvailableItems();
+        } else if (choice == 2) {
+            addItemsToCart();
+        } else if (choice == 3) {
+            viewCart();
+        } else if (choice == 4) {
+            placeOrder();
+        } else if (choice == 5) {
+            System.exit(0);
+        } else {
+            System.out.println("Invalid option. Try again.");
+        }
 
-        if(choice==1){  System.out.println("\n=== User Login ===");
+    }
 
-            System.out.print("Enter your name: ");
-            String name = scanner.nextLine();
-            if (name == null || name.trim().isEmpty()) {
-                System.out.println("Invalid name. Please try again.");
-                return;
+    private static void placeOrder() {
+        orderController.PlacePendingOrder(loggedInUser);
+    }
+
+    private static void viewCart() {
+        orderController.PrintCart(loggedInUser);
+        System.out.println("Press 1 To Go Back");
+        int choice = scanner.nextInt();
+        if(choice == 1)
+            MainMenuUI();
+        else{
+            System.out.println("Invalid Command, Press any key to retry");
+            scanner.nextLine();
+            viewCart();
+        }
+
+    }
+
+    private static void addItemsToCart() {
+        itemController.listItems();
+        UUID itemId = null;
+        System.out.println("Press 1 to add an item to your cart");
+        System.out.println("Press 2 to go back");
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        if(choice == 1){
+            System.out.println("Enter the id of the item");
+            String input = scanner.nextLine();
+            itemId = UUID.fromString(input);
+            System.out.println("Enter The Quantity");
+            int quantity = scanner.nextInt();
+            scanner.nextLine();
+            Item item = itemController.getItemById(itemId);
+            OrderItem orderItem = new OrderItem(item.getId(),quantity,(item.getPrice()*quantity));
+            orderController.AddItemToPendingOrder(orderItem, loggedInUser);
+            System.out.println("Item Added\n Press 1 To Add Another Item \n Press 2 To Go Back ");
+            int option = scanner.nextInt();
+            scanner.nextLine();
+            if (option == 1){
+                addItemsToCart();
+            }else {
+                MainMenuUI();
             }
-
-            System.out.print("Enter your phone number: ");
-            String phone = scanner.nextLine();
-            if (!phone.matches("^07\\d{9}$")) { // Validates phone starts with "07" and has 11 digits
-                System.out.println("Invalid phone number. Please try again.");
-                return;
-            }
-
-            System.out.print("Enter your password: ");
-            String password = scanner.nextLine();
-            if (password.length() < 8 || !password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$")) {
-                System.out.println("Invalid password. Password must be at least 8 characters, contain an uppercase letter, a lowercase letter, a digit, and a special character.");
-                return;
-            }
-
-            // Check if the entered credentials match any existing user
-            boolean userFound = false;
-            User loggedInUser = null;
-            for (User user : userController.listUsers()) {
-                if (user.getName().equals(name) && user.getPhone().equals(phone)) {
-                    if (user.getPassword().equals(password)) {
-                        loggedInUser = user;
-                        userFound = true;
-                        System.out.println("Logged in as " + loggedInUser.getName());
-                        break;
-                    } else {
-                        System.out.println("Invalid password.");
-                        return;
-                    }
-                }
-            }
-
-            // Notify if no user is found
-            if (!userFound) {
-                System.out.println("Invalid name or phone number.");
-            }
-
-//                // Check if the name and phone match
-//                if (user.name().equals(name) && user.phone().equals(phone)) {
-//                    // Check if the password matches
-//                    if (user.password().equals(password)) {
-//                        loggedInUser = user; // Set the logged-in user
-//                        userFound = true;
-//                        System.out.println("Logged in as " + loggedInUser.name());
-//                        break; // Exit the loop if the user is found
-//                    } else {
-//                        System.out.println("Invalid password.");
-//                        return; // Exit if the password is invalid
-//                    }
-//                }
-//            }
-
-            // Notify if no user is found
-                }else if (choice == 2) {
-            System.out.print("Enter your name: ");
-            String name = scanner.nextLine();
-            System.out.print("Enter your phone number: ");
-            String phone = scanner.nextLine();
-            System.out.print("Enter your password: ");
-            String password = scanner.nextLine();
-
-            User newUser = new User(UUID.randomUUID(), "userRoleId", name, phone, password, Utilities.Genders.Male); // Assuming a default gender
-
-            // Validate and add the new user
-            List<String> validationErrors = userController.validateUser(newUser);
-            if (validationErrors.isEmpty()) {
-                // Save the new user
-                userController.createUser(newUser);  // Optionally create user in the UserController
-                loggedInUser = newUser;  // Set logged in user
-                System.out.println("User signed up successfully!");
-            } else {
-                validationErrors.forEach(System.out::println);
-            }
+        }else if(choice == 2){
+            MainMenuUI();
+        }else{
+            System.out.println("Invalid Command press any key to Try Again");
+            scanner.nextLine();
+            addItemsToCart();
         }
     }
 
     private static void listAvailableItems() {
-        System.out.println("\n=== Available Items ===");
-        List<Item> items = itemController.listItems();
-        if (items.isEmpty() ) {
-            System.out.println("No items available.");
-        } else {
-
-            items.forEach(item -> System.out.println(item ));
-        }
+        itemController.listItems();
+        MainMenuUI();
     }
 
-    private static void addItemToCart() {
-        System.out.println("\n=== Add Item to Cart ===");
-        System.out.print("Enter item ID: ");
-        String itemIdInput = scanner.nextLine();
+    private static void signUp(){
 
-        UUID itemId;
-        try {
-            itemId = UUID.fromString(itemIdInput);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid UUID format. Please enter a valid UUID.");
-            return; // Exit the method if UUID is invalid
+        User newUser = new User();
+        System.out.println("Enter Name");
+        String name = scanner.nextLine();
+        newUser.setName(name);
+        System.out.println("Enter Phone Number");
+        String phone = scanner.nextLine();
+        newUser.setPhone(phone);
+        System.out.println("Enter Gender \n 1 For Male \n 2 for Female");
+        int selectedGender = scanner.nextInt();
+        scanner.nextLine();
+        if(selectedGender == 1){
+            Utilities.Genders gender = Utilities.Genders.Male;
         }
-
-        System.out.print("Enter quantity: ");
-        int quantity = scanner.nextInt();
-        scanner.nextLine();  // Consume newline
-
-        Item item = itemController.readItem(itemId);
-        if (item != null && item.isAvailable()) {
-            double subTotal = item.getPrice() * quantity;
-            cartController.createCart(quantity, itemId.toString(), subTotal);
-            System.out.println("Item added to cart.");
-        } else {
-            System.out.println("Item not found or unavailable.");
+        else if(selectedGender == 2){
+            Utilities.Genders gender = Utilities.Genders.Female;
         }
-    }
-
-
-    private static void viewCart() {
-        System.out.println("\n=== Cart ===");
-        List<Cart> cartItems = cartController.listCarts();
-        if (cartItems.isEmpty()) {
-            System.out.println("Your cart is empty.");
-        } else {
-            cartItems.forEach(cart -> System.out.println(cart));
+        else{
+            System.out.println("Theres no such Command, Press any key to try again");
+            scanner.nextLine();
+            signUp();
         }
-    }
-
-    private static void placeOrder() {
-        System.out.println("\n=== Place Order ===");
-        List<Cart> cartItems = cartController.listCarts();
-        if (cartItems.isEmpty()) {
-            System.out.println("Your cart is empty. Add items before placing an order.");
-        } else {
-            // Simulate placing an order
-            double totalPrice = 0;
-            List<OrderItem> orderItems = new ArrayList<>();
-            for (Cart cart : cartItems) {
-                totalPrice += cart.subTotal();
-                orderItems.add(new OrderItem(UUID.randomUUID(), UUID.randomUUID().toString(), cart.itemId(), cart.quantity(), cart.subTotal()));
-            }
-            orderController.createOrder(new Order(( UUID.randomUUID()),loggedInUser.getId().toString(), "addressId", "driverId", Utilities.Status.Pending, Utilities.DeliveryStatus.Pending, orderItems, totalPrice, 10, 0, 120,"No notes"));
-            System.out.println("Order placed successfully. Total price: $" + totalPrice);
-            cartController.clearCart(); // Clear the cart after placing the order
-        }
+        System.out.println("Enter Password");
+        String password = scanner.nextLine();
+        newUser.setPassword(password);
+        userController.createUser(newUser);
     }
 }

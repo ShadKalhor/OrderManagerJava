@@ -1,12 +1,13 @@
 package Entities;
 
 public class Utilities {
-    public enum Genders{
+    public static enum Genders{
         Male,
         Female,
     }
     public enum Status{
         Pending,
+        Confirmed,
         Reviewing,
         Approved,
         OutForDelivery,

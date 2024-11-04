@@ -94,9 +94,7 @@ public class Item {
                 ", description='" + description + '\'' +
                 ", price=" + price +
                 ", size='" + size + '\'' +
-                ", discount=" + discount +
-                ", isAvailable=" + isAvailable +
-                ", quantity=" + quantity
-               ;
+                ", isAvailable=" + isAvailable + '\n'
+                ;
     }
 }
