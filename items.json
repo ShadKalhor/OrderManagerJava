@@ -1,1 +1,22 @@
-[{"id":"7f479ae4-9b7c-4cd7-84ea-0dd14138aa16","name":"Laptop","description":"A high-performance laptop","price":1200.0,"size":"15 inch","discount":0.1,"isAvailable":true,"quantity":10},{"id":"dc45666c-51ba-4818-b774-5a35c0823d2d","name":"Phone","description":"A smartphone with 5G connectivity","price":800.0,"size":"6 inch","discount":0.05,"isAvailable":true,"quantity":20}]
+[
+  {
+    "id": "7f479ae4-9b7c-4cd7-84ea-0dd14138aa16",
+    "name": "Laptop",
+    "description": "A high-performance laptop",
+    "price": 1200,
+    "size": "15 inch",
+    "discount": 0.1,
+    "isAvailable": true,
+    "quantity": 10
+  },
+  {
+    "id": "dc45666c-51ba-4818-b774-5a35c0823d2d",
+    "name": "Phone",
+    "description": "A smartphone with 5G connectivity",
+    "price": 800,
+    "size": "6 inch",
+    "discount": 0.05,
+    "isAvailable": true,
+    "quantity": 20
+  }
+]

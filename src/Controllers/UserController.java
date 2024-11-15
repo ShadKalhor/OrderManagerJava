@@ -127,7 +127,8 @@ public class UserController {
                 }
             }
             System.out.println("User not found.");
-        } else {
+        }
+        else {
             //validationErrors.forEach(System.out::println);
         }
     }

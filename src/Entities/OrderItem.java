@@ -9,13 +9,17 @@ public class OrderItem {
     private double totalPrice;
 
     public OrderItem() {}
-
-    public OrderItem(UUID itemId, int quantity, double totalPrice) {
+    public OrderItem(UUID itemId, int quantity, double price){
         this.id = UUID.randomUUID();
         this.itemId = itemId;
         this.quantity = quantity;
-        this.totalPrice = totalPrice;
+        this.totalPrice = calculateTotalPrice(price);
     }
+
+    private double calculateTotalPrice(double price) {
+        return quantity*price;
+    }
+
 
     public UUID getId() {
         return id;
