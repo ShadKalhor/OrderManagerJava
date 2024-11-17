@@ -1,3 +1,4 @@
+/*
 import Entities.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -321,5 +322,102 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+}
+*/
+import CLI.AdminCLI;
+import CLI.UserCLI;
+import Controllers.*;
+import Entities.*;
+import Entities.Utilities.Genders;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.util.*;
+
+public class Main {
+    private static final String SERVER_HOST = "localhost"; // Server IP if needed
+    private static final int SERVER_PORT = 8081;
+
+    private static User loggedInUser;
+    private static List<OrderItem> cartItems = new ArrayList<>();
+    private static final Scanner scanner = new Scanner(System.in);
+    // Controller Instances
+    private static final UserController userController = new UserController();
+    private static final AddressController addressController = new AddressController();
+    private static final ItemController itemController = new ItemController();
+    private static final OrderController orderController = new OrderController();
+
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
+            socket.close();
+            System.out.println("Connected to the server");
+        } catch (IOException ex) {
+            System.out.println("Unable to connect to server.");
+            return;
+        }
+
+        loginUi();
+    }
+
+    private static void loginUi() {
+        System.out.println("You Are Not Logged in");
+        System.out.println("Press 1 to Login");
+        System.out.println("Press 2 to Sign Up");
+        int option = scanner.nextInt();
+        scanner.nextLine();
+        if (option == 1) login();
+        else if (option == 2) signUp();
+    }
+
+    private static void login() {
+        System.out.println("Enter Phone Number:");
+        String phone = scanner.nextLine();
+        System.out.println("Enter Password:");
+        String password = scanner.nextLine();
+
+        try {
+            boolean validLogin = userController.validateLogin(phone, password);
+            System.out.println("Logged In");
+            if (validLogin) {
+                loggedInUser = userController.getUserByPhone(phone);
+                if(loggedInUser.getRoleId().equals(UUID.fromString("45C4CAD3-D78D-4E76-93D2-7DA1C3900969")) ){
+                    UserCLI.MainMenuUI(loggedInUser);
+                } else if (loggedInUser.getRoleId().equals(UUID.fromString("035E77AC-915C-4019-A972-EAC564424761"))) {
+                    AdminCLI.AdminMainAMenuUI(loggedInUser);
+                }
+            } else {
+                System.out.println("Invalid Login. Press any key to retry.");
+                scanner.nextLine();
+                login();
+            }
+        } catch (IOException e) {
+            System.out.println("Error during login: " + e.getMessage());
+        }
+    }
+
+    private static void signUp() {
+        try {
+            System.out.println("Enter Name:");
+            String name = scanner.nextLine();
+            System.out.println("Enter Phone Number:");
+            String phone = scanner.nextLine();
+            System.out.println("Enter Gender (1 for Male, 2 for Female):");
+            int genderChoice = scanner.nextInt();
+            scanner.nextLine();
+            Genders gender = genderChoice == 1 ? Genders.Male : Genders.Female;
+            System.out.println("Enter Password:");
+            String password = scanner.nextLine();
+
+            UUID roleId = UUID.randomUUID(); // Use a default or generated role ID
+            userController.createUser(roleId, name, phone, password, gender.name());
+            System.out.println("User signed up successfully.");
+        } catch (IOException e) {
+            System.out.println("Error signing up: " + e.getMessage());
+        }
+        UserCLI.MainMenuUI(loggedInUser);
     }
 }

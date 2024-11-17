@@ -145,4 +145,31 @@ public class Order {
     public void setNotes(String notes) {
         this.notes = notes;
     }
+
+    @Override
+    public String toString() {StringBuilder sb = new StringBuilder();
+        sb.append("Order Details:\n");
+        sb.append("ID: ").append(id).append("\n");
+        sb.append("User ID: ").append(userId).append("\n");
+        sb.append("Address ID: ").append(addressId).append("\n");
+        sb.append("Driver ID: ").append(driverId).append("\n");
+        sb.append("Status: ").append(status).append("\n");
+        sb.append("Delivery Status: ").append(deliveryStatus).append("\n");
+        sb.append("SubTotal: ").append(subTotal).append("\n");
+        sb.append("Delivery Fee: ").append(deliveryFee).append("\n");
+        sb.append("Tax: ").append(tax).append("\n");
+        sb.append("Total Price: ").append(totalPrice).append("\n");
+        sb.append("Notes: ").append(notes).append("\n");
+
+        sb.append("Items:\n");
+        if (items != null && !items.isEmpty()) {
+            for (OrderItem item : items) {
+                sb.append("  ").append(item).append("\n");
+            }
+        } else {
+            sb.append("  No items in this order.\n");
+        }
+
+        return sb.toString();
+    }
 }

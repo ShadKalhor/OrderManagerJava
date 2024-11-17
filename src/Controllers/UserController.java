@@ -1,25 +1,24 @@
 package Controllers;
 
 import Entities.User;
-import Entities.Utilities;
-import Extensions.RegexFormats;
-import Repo.DataPersistence;
-
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.UUID;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+
+
+
+
 public class UserController {
-    private final List<User> userList = new ArrayList<>();
+    /*private final List<User> userList = new ArrayList<>();
 
     public void createUser(User user) {
         if(validateUser(user)){
@@ -88,11 +87,13 @@ public class UserController {
         }
 
         return null;
-        /*    return userList.stream()
+        */
+    /*    return userList.stream()
                 .filter(user -> user.getId().equals(userId))
                 .findFirst()
                 .orElse(null);
-    */}
+    */
+    /*}
     public User getUser(String phone) {
         User result = null;
         List<User> users = null;
@@ -104,15 +105,17 @@ public class UserController {
 
 
         return result;
-        /*    return userList.stream()
+        *//*    return userList.stream()
                 .filter(user -> user.getId().equals(userId))
                 .findFirst()
                 .orElse(null);
-    */}
+    */
+    /*}
 
 
-    public void updateUser(UUID userId, User newUser) {/*
+    public void updateUser(UUID userId, User newUser) {*//*
         List<String> validationErrors = validateUser(newUser);*/
+    /*
         if (validateUser(newUser)) {
             for (int i = 0; i < userList.size(); i++) {
                 User user = userList.get(i);
@@ -207,5 +210,131 @@ public class UserController {
             return users.stream()
                     .anyMatch(user -> phone.equals(user.getPhone()));
 
+    }*/
+
+    private static final String BASE_URL = "http://localhost:8081/user";
+    private final Gson gson = new Gson();
+
+    // Create a new user
+    public String createUser(UUID roleId, String name, String phone, String password, String gender) throws IOException {
+        URL url = new URL(BASE_URL + "/create");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "text/plain");
+        connection.setDoOutput(true);
+
+        String requestData = String.join(",", roleId.toString(), name, phone, password, gender);
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(requestData.getBytes());
+            os.flush();
+        }
+
+        return readResponse(connection);
     }
+
+    // Get user by ID
+    public User getUserById(UUID userId) throws IOException {
+        URL url = new URL(BASE_URL + "/get?id=" + userId);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        String response = readResponse(connection);
+        return gson.fromJson(response, User.class);
+    }
+
+    // Get user by phone number
+    public User getUserByPhone(String phone) throws IOException {
+        URL url = new URL(BASE_URL + "/get?phone=" + phone);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        String response = readResponse(connection);
+        return gson.fromJson(response, User.class);
+    }
+
+    // Get all users
+    public List<User> getAllUsers() throws IOException {
+        URL url = new URL(BASE_URL + "/get?all");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        String response = readResponse(connection);
+        Type listType = new TypeToken<List<User>>() {}.getType();
+        return gson.fromJson(response, listType);
+    }
+
+    // Update a user
+    public String updateUser(UUID userId, UUID roleId, String name, String phone, String password, String gender) throws IOException {
+        URL url = new URL(BASE_URL + "/update");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty("Content-Type", "text/plain");
+        connection.setDoOutput(true);
+
+        String requestData = String.join(",", userId.toString(), roleId.toString(), name, phone, password, gender);
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(requestData.getBytes());
+            os.flush();
+        }
+
+        return readResponse(connection);
+    }
+
+    // Delete a user
+    public String deleteUser(UUID userId) throws IOException {
+        URL url = new URL(BASE_URL + "/delete?id=" + userId);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("DELETE");
+
+        return readResponse(connection);
+    }
+
+    // Validate login
+    public boolean validateLogin(String phone, String password) throws IOException {
+        URL url = new URL(BASE_URL + "/validateLogin");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "text/plain");
+        connection.setDoOutput(true);
+
+        String requestData = String.join(",", phone, password);
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(requestData.getBytes());
+            os.flush();
+        }
+
+        int responseCode = connection.getResponseCode();
+        return responseCode == 200; // HTTP OK indicates successful login
+    }
+
+    // Print all users
+    public String printUsers() throws IOException {
+        URL url = new URL(BASE_URL + "/printUsers");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        return readResponse(connection);
+    }
+
+    // Helper method to read the response from the server
+    private String readResponse(HttpURLConnection connection) throws IOException {
+        int responseCode = connection.getResponseCode();
+        InputStream inputStream = (responseCode >= 200 && responseCode < 300)
+                ? connection.getInputStream()
+                : connection.getErrorStream();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            StringBuilder response = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+
+            return response.toString();
+        } finally {
+            connection.disconnect();
+        }
+    }
+
 }

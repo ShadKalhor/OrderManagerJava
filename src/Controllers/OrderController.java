@@ -1,21 +1,23 @@
 package Controllers;
 
-import Entities.*;
-import Repo.DataPersistence;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
+
+import Entities.Order;
+import Entities.OrderItem;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 
 public class OrderController {
-    private List<Order> orderList = new ArrayList<>();
+    /*private List<Order> orderList = new ArrayList<>();
 
     public void AddItemToPendingOrder(OrderItem orderItem, User loggedInUser){
         loadOrders();
@@ -99,7 +101,8 @@ public class OrderController {
     public void CreateOrder(Order order) {
         saveOrderToJson(order);
         //if(isValidOrder(order)) {
-            /*double totalPrice = order.subTotal() + order.deliveryFee() + order.tax();
+            */
+    /*double totalPrice = order.subTotal() + order.deliveryFee() + order.tax();
             Order newOrder = new Order(UUID.randomUUID(), order.userId(), order.addressId(),
                     order.driverId(), order.status(), order.deliveryStatus(), order.items(),
                     order.subTotal(), order.deliveryFee(), order.tax(), totalPrice, order.notes());
@@ -107,7 +110,8 @@ public class OrderController {
             DataPersistence.saveData(orderList, "orders.json");  // Save the user list to JSON
 
             System.out.println("Order created successfully!");*/
-        //}
+    /*
+        }
     }
 
     private boolean saveOrderToJson(Order order) {
@@ -159,8 +163,8 @@ public class OrderController {
             UpdateOrder(selectedOrder);
         }
 
-    }
-/*
+    }*/
+    /*
 
     private boolean isValidOrder(Order order) {
 
@@ -195,7 +199,7 @@ public class OrderController {
         return true;
     }
 */
-/*
+    /*
 
     public Order ReadOrder(UUID orderId) {
         return orderList.stream()
@@ -245,5 +249,158 @@ public class OrderController {
     }
 
 */
+
+    private static final String BASE_URL = "http://localhost:8081/order";
+    private final Gson gson = new Gson();
+
+    // Create a new order
+    public String createOrder(Order order) throws IOException {
+        URL url = new URL(BASE_URL + "/create");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
+
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(gson.toJson(order).getBytes());
+            os.flush();
+        }
+
+        return readResponse(connection);
+    }
+
+    // Get an order by ID
+    public Order getOrder(UUID orderId) throws IOException {
+        URL url = new URL(BASE_URL + "/get?id=" + orderId);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        String response = readResponse(connection);
+        return gson.fromJson(response, Order.class);
+    }
+
+
+    public List<Order> listOrders() throws IOException {
+        URL url = new URL(BASE_URL + "/list"); // Define the endpoint for listing orders
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+
+                // Parse the JSON response into a List<Order>
+                return gson.fromJson(response.toString(), new TypeToken<List<Order>>() {}.getType());
+            } else {
+                throw new IOException("Failed to retrieve orders. HTTP Code: " + connection.getResponseCode());
+            }
+        } finally {
+            connection.disconnect();
+        }
+    }
+    // Update an existing order
+    public String updateOrder(UUID orderId, Order updatedOrder) throws IOException {
+        URL url = new URL(BASE_URL + "/update?id=" + orderId);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
+
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(gson.toJson(updatedOrder).getBytes());
+            os.flush();
+        }
+
+        return readResponse(connection);
+    }
+
+    // Delete an order by ID
+    public String deleteOrder(UUID orderId) throws IOException {
+        URL url = new URL(BASE_URL + "/delete?id=" + orderId);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("DELETE");
+
+        return readResponse(connection);
+    }
+
+    // Add item to a pending order
+    public String addItemToPendingOrder(UUID userId, List<OrderItem> items) throws IOException {
+        URL url = new URL(BASE_URL + "/addItemToPendingOrder");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
+
+        String requestData = gson.toJson(new OrderRequest(userId, items));
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(requestData.getBytes());
+            os.flush();
+        }
+
+        return readResponse(connection);
+    }
+
+    // Place a pending order
+    public String placePendingOrder(UUID userId, List<OrderItem> items) throws IOException {
+        URL url = new URL(BASE_URL + "/placePendingOrder");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
+
+        String requestData = gson.toJson(new OrderRequest(userId, items));
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(requestData.getBytes());
+            os.flush();
+        }
+
+        return readResponse(connection);
+    }
+
+    // Print cart for a user
+    public String printCart(UUID userId) throws IOException {
+        URL url = new URL(BASE_URL + "/printCart?userId=" + userId);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        return readResponse(connection);
+    }
+
+    // Helper method to read the response from the server
+    private String readResponse(HttpURLConnection connection) throws IOException {
+        int responseCode = connection.getResponseCode();
+        InputStream inputStream = (responseCode >= 200 && responseCode < 300)
+                ? connection.getInputStream()
+                : connection.getErrorStream();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            StringBuilder response = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+
+            return response.toString();
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    // Helper class for request payloads
+    static class OrderRequest {
+        UUID userId;
+        List<OrderItem> items;
+
+        public OrderRequest(UUID userId, List<OrderItem> items) {
+            this.userId = userId;
+            this.items = items;
+        }
+    }
+
 
 }

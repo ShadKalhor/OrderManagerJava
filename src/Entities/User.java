@@ -7,14 +7,14 @@ import Entities.*;
 public class User {
 
     private final UUID id;
-    private String roleId;
+    private UUID roleId;
     private String name;
     private String phone;
     private String password;
     private Utilities.Genders gender;
 
         // Constructor
-    public User(UUID id, String roleId, String name, String phone, String password, Utilities.Genders newgender) {
+    public User(UUID id, UUID roleId, String name, String phone, String password, Utilities.Genders newgender) {
         this.id = id;
         this.roleId = roleId;
         this.name = name;
@@ -34,7 +34,7 @@ public class User {
             return id;
         }
 
-        public String getRoleId() {
+        public UUID getRoleId() {
             return roleId;
         }
 
@@ -55,7 +55,7 @@ public class User {
         }
 
         // Setters
-        public void setRoleId(String roleId) {
+        public void setRoleId(UUID roleId) {
             this.roleId = roleId;
         }
 
@@ -80,7 +80,7 @@ public class User {
         public String toString() {
             return "User{" +
                     "id=" + id +
-                    ", roleId='" + roleId + '\'' +
+                    ", roleId='" + roleId.toString() + '\'' +
                     ", name='" + name + '\'' +
                     ", phone='" + phone + '\'' +
                     ", gender=" + gender +
